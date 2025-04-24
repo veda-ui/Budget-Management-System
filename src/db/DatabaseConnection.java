@@ -1,5 +1,6 @@
 package db;
 
+import exceptions.ValidationException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -49,7 +50,8 @@ public class DatabaseConnection {
                 try (InputStream fileInput = new FileInputStream("d:\\javaproj\\flexi\\config\\db.properties")) {
                     props.load(fileInput);
                 } catch (Exception e) {
-                    throw new RuntimeException("Unable to find db.properties in config directory: " + e.getMessage());
+                    throw new RuntimeException(
+                            "Unable to find db.properties in config directory: " + e.getMessage(), e);
                 }
             } else {
                 props.load(input);

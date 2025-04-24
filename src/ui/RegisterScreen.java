@@ -7,6 +7,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.Date;
 import utils.UIConstants;
+import exceptions.ValidationException;
 
 public class RegisterScreen extends BaseScreen {
     private JTextField usernameField;
@@ -100,24 +101,44 @@ public class RegisterScreen extends BaseScreen {
         String email = emailField.getText().trim();
         String pincode = pincodeField.getText().trim();
 
-        if (username.isEmpty() || email.isEmpty() || pincode.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill in all fields");
-            return;
+        try {
+            if (username.isEmpty()) {
+                throw new ValidationException("Username cannot be empty");
+            }
+            validateEmail(email);
+            validatePassword(pincode);
+
+            User user = new User();
+            user.setUsername(username);
+            user.setEmailId(email);
+            user.setPincode(pincode);
+            user.setCreatedAt(new Date());
+
+            UserController userController = new UserController();
+            if (userController.registerUser(user)) {
+                JOptionPane.showMessageDialog(this, "Registration successful!");
+                new LoginScreen().setVisible(true);
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this, "Registration failed. Please try again.");
+            }
+        } catch (ValidationException ex) {
+            JOptionPane.showMessageDialog(this, "Validation Error: " + ex.getMessage());
         }
+    }
 
-        User user = new User();
-        user.setUsername(username);
-        user.setEmailId(email);
-        user.setPincode(pincode);
-        user.setCreatedAt(new Date());
+    private void validateEmail(String email) throws ValidationException {
+        String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+        if (!email.matches(emailRegex)) {
+            throw new ValidationException("Invalid email format");
+        }
+    }
 
-        UserController userController = new UserController();
-        if (userController.registerUser(user)) {
-            JOptionPane.showMessageDialog(this, "Registration successful!");
-            new LoginScreen().setVisible(true);
-            dispose();
-        } else {
-            JOptionPane.showMessageDialog(this, "Registration failed. Please try again.");
+    private void validatePassword(String password) throws ValidationException {
+        String passwordRegex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).{8,}$";
+        if (!password.matches(passwordRegex)) {
+            throw new ValidationException(
+                    "Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a digit, and a special character");
         }
     }
 }

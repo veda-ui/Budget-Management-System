@@ -20,6 +20,22 @@ public class IncomeController {
         }
     }
 
+    public boolean addIncome(int userId, double income, double savings) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String query = "INSERT INTO Income (user_id, income, savings, created_at) VALUES (?, ?, ?, NOW())";
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setInt(1, userId);
+                stmt.setDouble(2, income);
+                stmt.setDouble(3, savings);
+                int rowsAffected = stmt.executeUpdate();
+                return rowsAffected > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public double getCurrentMonthIncome(int userId) {
         Calendar cal = Calendar.getInstance();
         int currentMonth = cal.get(Calendar.MONTH) + 1;
@@ -56,7 +72,8 @@ public class IncomeController {
             stmt.setInt(3, currentYear);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getDouble("total");
+                Double total = rs.getDouble("total");
+                return total != null ? total : 0.0;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -82,7 +99,7 @@ public class IncomeController {
     }
 
     public Income getIncomeByUserId(int userId) {
-        
+
         Calendar cal = Calendar.getInstance();
         int currentMonth = cal.get(Calendar.MONTH) + 1;
         int currentYear = cal.get(Calendar.YEAR);

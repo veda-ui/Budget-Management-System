@@ -4,19 +4,29 @@ import models.Expense;
 import java.sql.*;
 import db.DatabaseConnection;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class ExpenseController {
     public boolean addExpense(Expense expense) {
         String query = "INSERT INTO Expenditure (user_id, category_id, expense_amt, description, date_of_expense) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DatabaseConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, expense.getUserId());
-            stmt.setInt(2, expense.getCategoryId());
-            stmt.setDouble(3, expense.getExpenseAmt());
-            stmt.setString(4, expense.getDescription());
-            stmt.setDate(5, new java.sql.Date(expense.getDateOfExpense().getTime()));
-            return stmt.executeUpdate() > 0;
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement stmt = conn.prepareStatement(query)) {
+                stmt.setInt(1, expense.getUserId());
+                stmt.setInt(2, expense.getCategoryId());
+                stmt.setDouble(3, expense.getExpenseAmt());
+                stmt.setString(4, expense.getDescription());
+                stmt.setDate(5, new java.sql.Date(expense.getDateOfExpense().getTime()));
+
+                int result = stmt.executeUpdate();
+                if (result > 0) {
+                    conn.commit();
+                    return true;
+                }
+                conn.rollback();
+                return false;
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -88,13 +98,21 @@ public class ExpenseController {
     }
 
     public double getTotalExpensesByUserId(int userId) {
-        String query = "SELECT SUM(expense_amt) as total FROM Expenditure WHERE user_id = ?";
+        Calendar cal = Calendar.getInstance();
+        int currentMonth = cal.get(Calendar.MONTH) + 1;
+        int currentYear = cal.get(Calendar.YEAR);
+
+        String query = "SELECT SUM(expense_amt) as total FROM Expenditure " +
+                "WHERE user_id = ? AND MONTH(date_of_expense) = ? AND YEAR(date_of_expense) = ?";
         try (Connection conn = DatabaseConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, userId);
+            stmt.setInt(2, currentMonth);
+            stmt.setInt(3, currentYear);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getDouble("total");
+                Double total = rs.getDouble("total");
+                return total != null ? total : 0.0;
             }
         } catch (SQLException e) {
             e.printStackTrace();

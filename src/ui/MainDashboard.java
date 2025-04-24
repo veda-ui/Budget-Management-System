@@ -149,14 +149,19 @@ public class MainDashboard extends BaseScreen {
                 IncomeController incomeController = new IncomeController();
                 ExpenseController expenseController = new ExpenseController();
 
+                // Get current month's values
                 double currentMonthIncome = incomeController.getCurrentMonthIncome(userId);
                 double currentMonthSavings = incomeController.getCurrentMonthSavings(userId);
-                double totalExpenses = expenseController.getTotalExpensesByUserId(userId);
-                double disposable = currentMonthIncome - (totalExpenses + currentMonthSavings);
+                double currentMonthExpenses = expenseController.getTotalExpensesByUserId(userId);
 
+                // Calculate disposable income (Income - Expenses - Savings)
+                // Ensure savings are not reduced by expenses
+                double disposable = Math.max(0, currentMonthIncome - currentMonthExpenses - currentMonthSavings);
+
+                // Update labels
                 incomeLabel.setText(String.format("$%.2f", currentMonthIncome));
                 savingsLabel.setText(String.format("$%.2f", currentMonthSavings));
-                expenseLabel.setText(String.format("$%.2f", totalExpenses));
+                expenseLabel.setText(String.format("$%.2f", currentMonthExpenses));
                 disposableLabel.setText(String.format("$%.2f", disposable));
 
                 revalidate();

@@ -14,6 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import utils.*;
+import exceptions.ValidationException;
 
 public class ManageSavingGoalsScreen extends BaseScreen {
     private int userId;
@@ -200,13 +201,14 @@ public class ManageSavingGoalsScreen extends BaseScreen {
 
     private double calculateTotalSavings() {
         try {
-            String query = "SELECT SUM(savings) as total FROM Income WHERE user_id = ?";
+            String query = "SELECT SUM(savings) as total_savings FROM Income WHERE user_id = ?"; 
+                                                                                               
             try (Connection conn = DatabaseConnection.getConnection();
                     PreparedStatement stmt = conn.prepareStatement(query)) {
                 stmt.setInt(1, userId);
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next()) {
-                    return rs.getDouble("total");
+                    return rs.getDouble("total_savings"); 
                 }
             }
         } catch (SQLException e) {
@@ -267,19 +269,19 @@ public class ManageSavingGoalsScreen extends BaseScreen {
             int targetDate = Integer.parseInt(targetDateField.getText().trim());
 
             if (targetAmt <= 0) {
-                throw new IllegalArgumentException("Target amount must be greater than zero");
+                throw new ValidationException("Target amount must be greater than zero");
             }
 
             if (targetYear < Calendar.getInstance().get(Calendar.YEAR)) {
-                throw new IllegalArgumentException("Target year cannot be in the past");
+                throw new ValidationException("Target year cannot be in the past");
             }
 
             if (targetMonth < 1 || targetMonth > 12) {
-                throw new IllegalArgumentException("Invalid month");
+                throw new ValidationException("Invalid month");
             }
 
             if (targetDate < 1 || targetDate > 31) {
-                throw new IllegalArgumentException("Invalid date");
+                throw new ValidationException("Invalid date");
             }
 
             SavingGoal goal = new SavingGoal();
@@ -297,6 +299,8 @@ public class ManageSavingGoalsScreen extends BaseScreen {
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to save saving goal");
             }
+        } catch (ValidationException e) {
+            JOptionPane.showMessageDialog(this, "Validation Error: " + e.getMessage());
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Please enter valid numbers");
         } catch (Exception e) {

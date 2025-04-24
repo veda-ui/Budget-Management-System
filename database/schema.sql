@@ -60,21 +60,6 @@ CREATE INDEX idx_category_user ON Categories(user_id);
 CREATE INDEX idx_expenditure_user ON Expenditure(user_id);
 CREATE INDEX idx_expenditure_date ON Expenditure(date_of_expense);
 
-DROP TRIGGER IF EXISTS UpdateSavingsAfterExpense;
-DROP TRIGGER IF EXISTS InitializeSavings;
-DROP TRIGGER IF EXISTS UpdateSavingsOnIncomeChange;
-
-DELIMITER //
 
 
-CREATE TRIGGER UpdateSavingsAfterExpense
-AFTER INSERT ON Expenditure
-FOR EACH ROW
-BEGIN
-    UPDATE Income 
-    SET savings = GREATEST(0, savings - NEW.expense_amt)
-    WHERE user_id = NEW.user_id;
-END//
-
-DELIMITER ;
 

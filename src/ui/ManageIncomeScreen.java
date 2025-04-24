@@ -5,8 +5,9 @@ import models.Income;
 import javax.swing.*;
 import java.awt.*;
 import utils.UIConstants;
+import interfaces.IncomeManager;
 
-public class ManageIncomeScreen extends BaseScreen {
+public class ManageIncomeScreen extends BaseScreen implements IncomeManager {
     private int userId;
     private JTextField incomeField;
     private JTextField savingsField;
@@ -142,7 +143,9 @@ public class ManageIncomeScreen extends BaseScreen {
         return panel;
     }
 
-    private void loadCurrentIncome() {
+    @Override
+    public void loadCurrentIncome() {
+       
         IncomeController controller = new IncomeController();
         Income income = controller.getIncomeByUserId(userId);
         if (income != null) {
@@ -153,7 +156,9 @@ public class ManageIncomeScreen extends BaseScreen {
         }
     }
 
-    private void saveIncome() {
+    @Override
+    public void saveIncome() {
+     
         try {
             double incomeAmt = Double.parseDouble(incomeField.getText().trim());
             double savings = Double.parseDouble(savingsField.getText().trim());
@@ -187,13 +192,17 @@ public class ManageIncomeScreen extends BaseScreen {
         }
     }
 
-    private void clearForm() {
+    @Override
+    public void clearForm() {
+       
         incomeField.setText("");
         savingsField.setText("");
         loadCurrentIncome();
     }
 
-    private void updateParentDashboard() {
+    @Override
+    public void updateParentDashboard() {
+     
         Window[] windows = Window.getWindows();
         for (Window window : windows) {
             if (window instanceof MainDashboard) {
