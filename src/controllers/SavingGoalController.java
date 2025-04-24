@@ -174,7 +174,7 @@ public class SavingGoalController {
     }
 
     public boolean deductFromSavings(int userId, double amount) {
-        // First verify if user has enough savings
+     
         double currentSavings = getTotalSavingsAmount(userId);
         if (currentSavings < amount) {
             return false;
